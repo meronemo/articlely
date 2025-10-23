@@ -14,9 +14,12 @@ export function ArticleInput({ setArticle }: ArticleInputProps) {
   const [titleInput, setTitleInput] = useState("")
   const [textInput, setTextInput] = useState("")
   const [urlInput, setUrlInput] = useState("")
+  const [error, setError] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
 
   const handleTextSubmit = async () => {
     if (!titleInput.trim() || !textInput.trim()) return
+    setError(null)
     setArticle({
       title: titleInput,
       content: textInput,
@@ -25,6 +28,10 @@ export function ArticleInput({ setArticle }: ArticleInputProps) {
 
   const handleUrlSubmit = async () => {
     if (!urlInput.trim()) return
+    
+    setError(null)
+    setIsLoading(true)
+    
     try {
       const response = await fetch("/api/fetch-article", {
         method: "POST",
@@ -34,8 +41,8 @@ export function ArticleInput({ setArticle }: ArticleInputProps) {
 
       const data = await response.json()
 
-      if (data.error) {
-        console.error("Error fetching article:", data.error)
+      if (data.error || !response.ok) {
+        setError(data.error)
         return
       }
 
@@ -44,7 +51,9 @@ export function ArticleInput({ setArticle }: ArticleInputProps) {
         content: data.content,
       })
     } catch (error) {
-      console.error("Error:", error)
+      setError("Error while fetching: " + error)
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -55,6 +64,12 @@ export function ArticleInput({ setArticle }: ArticleInputProps) {
         <CardDescription>Paste text directly or enter a URL to fetch an article</CardDescription>
       </CardHeader>
       <CardContent>
+        {error && (
+          <div className="mb-4 p-4 bg-destructive/10 border border-destructive/20 rounded-md">
+            <p className="text-sm text-destructive font-medium">{error}</p>
+          </div>
+        )}
+
         <Tabs defaultValue="text">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="text">Paste Text</TabsTrigger>
@@ -82,7 +97,9 @@ export function ArticleInput({ setArticle }: ArticleInputProps) {
               onChange={(e) => setUrlInput(e.target.value)}
               className="min-h-5 resize-none"
             />
-            <Button onClick={handleUrlSubmit} disabled={!urlInput.trim()} className="w-full">Submit</Button>
+            <Button onClick={handleUrlSubmit} disabled={!urlInput.trim() || isLoading} className="w-full">
+              {isLoading ? "Fetching..." : "Submit"}
+            </Button>
           </TabsContent>
         </Tabs>
       </CardContent>
