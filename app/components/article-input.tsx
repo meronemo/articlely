@@ -1,64 +1,72 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Textarea } from "@/components/ui/textarea"
-import { Button } from "@/components/ui/button"
+import { useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
 
 interface ArticleInputProps {
-  setArticle: (article: { title: string; content: string }) => void
+  setArticle: (article: { title: string; content: string }) => void;
 }
 
 export function ArticleInput({ setArticle }: ArticleInputProps) {
-  const [titleInput, setTitleInput] = useState("")
-  const [contentInput, setContentInput] = useState("")
-  const [urlInput, setUrlInput] = useState("")
-  const [error, setError] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
+  const [titleInput, setTitleInput] = useState("");
+  const [contentInput, setContentInput] = useState("");
+  const [urlInput, setUrlInput] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleTextSubmit = async () => {
-    if (!titleInput.trim() || !contentInput.trim()) return
-    setError(null)
+    if (!titleInput.trim() || !contentInput.trim()) return;
+    setError(null);
     setArticle({
       title: titleInput,
       content: contentInput,
-    })
-  }
+    });
+  };
 
   const handleUrlSubmit = async () => {
-    if (!urlInput.trim()) return
-    
-    setError(null)
-    setIsLoading(true)
-    
+    if (!urlInput.trim()) return;
+
+    setError(null);
+    setIsLoading(true);
+
     try {
       const response = await fetch("/api/fetch-article", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: urlInput }),
-      })
+      });
 
-      const data = await response.json()
+      const data = await response.json();
 
       if (data.error || !response.ok) {
-        setError(data.error)
-        return
+        setError(data.error);
+        return;
       }
 
-      setTitleInput(data.title)
-      setContentInput(data.content)
+      setTitleInput(data.title);
+      setContentInput(data.content);
     } catch (error) {
-      setError("Error while fetching: " + error)
+      setError("Error while fetching: " + error);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <Card className="w-full">
       <CardHeader>
         <CardTitle>Add an Article</CardTitle>
-        <CardDescription>Paste text directly or enter a URL to fetch an article</CardDescription>
+        <CardDescription>
+          Paste text directly or enter a URL to fetch an article
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {error && (
@@ -74,8 +82,8 @@ export function ArticleInput({ setArticle }: ArticleInputProps) {
             onChange={(e) => setUrlInput(e.target.value)}
             className="min-h-10 resize-none flex-10"
           />
-          <Button 
-            onClick={handleUrlSubmit} 
+          <Button
+            onClick={handleUrlSubmit}
             disabled={!urlInput.trim() || isLoading}
             className="flex-1"
           >
@@ -94,9 +102,15 @@ export function ArticleInput({ setArticle }: ArticleInputProps) {
           value={contentInput}
           onChange={(e) => setContentInput(e.target.value)}
           className="min-h-[300px] resize-none"
-        /> 
-        <Button onClick={handleTextSubmit} disabled={!titleInput.trim() || !contentInput.trim()} className="w-full">Submit</Button>
+        />
+        <Button
+          onClick={handleTextSubmit}
+          disabled={!titleInput.trim() || !contentInput.trim()}
+          className="w-full"
+        >
+          Submit
+        </Button>
       </CardContent>
     </Card>
-  )
+  );
 }
